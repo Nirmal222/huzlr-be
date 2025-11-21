@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.database import get_db
-from app.models.task import Task
+from sqlalchemy import select
+from core.database import get_db
+from models.task import Task
 
 
 router = APIRouter()
@@ -9,5 +10,6 @@ router = APIRouter()
 
 @router.get("/tasks")
 async def list_tasks(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(Task.__table__.select())
-    return result.fetchall()
+    result = await db.execute(select(Task))
+    tasks = result.scalars().all()
+    return [{"id": task.id, "title": task.title, "description": task.description, "status": task.status} for task in tasks]
