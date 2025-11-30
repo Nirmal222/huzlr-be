@@ -159,7 +159,7 @@ async def callback(request: Request, db: Annotated[AsyncSession, Depends(get_db)
         
         # Redirect to Frontend with token
         return RedirectResponse(
-            url=f"{settings.FRONTEND_BASE_URL}/auth/success?token={access_token}"
+            url=f"{settings.FRONTEND_BASE_URL}/auth/success/{access_token}"
         )
 
 @router.get("/me")
