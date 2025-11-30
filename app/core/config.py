@@ -7,6 +7,17 @@ ENV_FILE = BASE_DIR / ".env"
 
 class Settings(BaseSettings):
     DATABASE_URL: str
+    SECRET_KEY: str = "your-super-secret-key-change-it"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # OAuth
+    GOOGLE_CLIENT_ID: str = "your-google-client-id"
+    GOOGLE_CLIENT_SECRET: str = "your-google-client-secret"
+    
+    # URLs
+    FRONTEND_BASE_URL: str = "http://localhost:3000"
+    BACKEND_URL: str = "http://localhost:8000"
 
     class Config:
         env_file = str(ENV_FILE)
