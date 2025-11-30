@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from api.routes import router
+from api.v1.router import api_router
 from models.task import Base
 from core.database import engine
 
@@ -15,4 +15,4 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-app.include_router(router)
+app.include_router(api_router, prefix="/api/v1")
