@@ -6,6 +6,16 @@ class ProjectBase(BaseModel):
     project_title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = "draft"
+    
+    # Charter Fields
+    purpose: Optional[str] = None
+    objectives: Optional[str] = None
+    scope: Optional[str] = None
+    deliverables: Optional[str] = None
+    timeline: Optional[str] = None
+    budget: Optional[str] = None
+    stakeholders: Optional[str] = None
+    team_members: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     user_id: int
