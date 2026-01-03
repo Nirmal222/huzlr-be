@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = "your-google-client-secret"
     
     # URLs
-    FRONTEND_BASE_URL: str = "http://localhost:3000"
-    BACKEND_URL: str = "http://localhost:8000"
+    FRONTEND_BASE_URL: str = "http://localhost:3001"
+    BACKEND_URL: str = "http://localhost:8001"
 
     # Mailjet
     MAILJET_API_KEY: str = ""

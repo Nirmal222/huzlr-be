@@ -65,8 +65,8 @@ app = FastAPI(lifespan=lifespan)
 
 # CORS Configuration
 origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     settings.FRONTEND_BASE_URL,
 ]
 
@@ -79,3 +79,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api/v1")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
