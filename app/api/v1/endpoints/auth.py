@@ -189,15 +189,27 @@ async def callback(request: Request, db: Annotated[AsyncSession, Depends(get_db)
 
 @router.get("/me")
 async def read_users_me(
-    current_user: Annotated[User, Depends(deps.get_current_user)]
+    current_user: Annotated[User, Depends(deps.get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
+    # Check if user has Jira connection
+    from models.jira import JiraConnection
+    result = await db.execute(select(JiraConnection).where(JiraConnection.user_id == current_user.id))
+    jira_connection = result.scalar_one_or_none()
+    
     return {
         "id": current_user.id,
         "email": current_user.email,
         "username": current_user.username,
         "auth_provider": current_user.auth_provider,
         "has_access": current_user.has_access,
-        "is_waitlisted": current_user.is_waitlisted
+        "is_waitlisted": current_user.is_waitlisted,
+        "integrations": {
+            "jira": {
+                "connected": jira_connection is not None,
+                "expires_at": jira_connection.expires_at.isoformat() if jira_connection else None
+            }
+        }
     }
 
 @router.post("/verify-access-code")

@@ -21,3 +21,4 @@ class User(Base):
 
     # Relationships
     projects: Mapped[list["Project"]] = relationship("Project", back_populates="user")
+    jira_connection: Mapped["JiraConnection"] = relationship("JiraConnection", back_populates="user", uselist=False)
