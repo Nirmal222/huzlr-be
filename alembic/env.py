@@ -16,7 +16,7 @@ app_path = Path(__file__).resolve().parents[1] / "app"
 sys.path.append(str(app_path))
 
 # Import Base first
-from models.task import Base
+from models.base import Base
 from core.config import settings
 
 # Automatically import all models from the models directory

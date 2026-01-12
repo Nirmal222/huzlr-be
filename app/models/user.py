@@ -20,5 +20,5 @@ class User(Base):
     is_waitlisted: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
-    projects: Mapped[list["Project"]] = relationship("Project", back_populates="user")
+    projects: Mapped[list["Project"]] = relationship("Project", back_populates="user", foreign_keys="[Project.user_id]")
     jira_connection: Mapped["JiraConnection"] = relationship("JiraConnection", back_populates="user", uselist=False)

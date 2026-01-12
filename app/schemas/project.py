@@ -2,20 +2,39 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
+from models.project import ProjectStatusEnum, ProjectSourceEnum, ProjectPriorityEnum
+
 class ProjectBase(BaseModel):
     project_title: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = "draft"
+    status: Optional[ProjectStatusEnum] = ProjectStatusEnum.DRAFT
     
-    # Charter Fields
-    purpose: Optional[str] = None
-    objectives: Optional[str] = None
-    scope: Optional[str] = None
-    deliverables: Optional[str] = None
-    timeline: Optional[str] = None
-    budget: Optional[str] = None
-    stakeholders: Optional[str] = None
-    team_members: Optional[str] = None
+    # Integration Fields
+    source: Optional[ProjectSourceEnum] = ProjectSourceEnum.NATIVE
+    external_id: Optional[str] = None
+    external_url: Optional[str] = None
+    integration_metadata: Optional[dict] = None
+
+    # Charter Fields (JSON)
+    purpose: Optional[dict | list | str] = None # Flexible for now incase legacy text exists
+    objectives: Optional[list] = None
+    deliverables: Optional[list] = None
+    scope: Optional[dict | str] = None
+    timeline: Optional[dict | str] = None
+    budget: Optional[dict | str] = None
+    stakeholders: Optional[list | str] = None
+    team_members: Optional[list | str] = None
+    resources: Optional[list] = None
+    milestones: Optional[list] = None
+
+    # Linear-style Metadata
+    priority: Optional[ProjectPriorityEnum] = None
+    start_date: Optional[datetime] = None
+    target_date: Optional[datetime] = None
+    labels: Optional[list] = None
+    teams: Optional[list] = None
+    stats: Optional[dict] = None
+    lead_id: Optional[int] = None
 
 class ProjectCreate(ProjectBase):
     user_id: int

@@ -1,7 +1,29 @@
+from sqlalchemy import String, Integer, BigInteger, Text, Float, ForeignKey, JSON, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, BigInteger, Text, Float, ForeignKey
 from datetime import datetime
 from models.base import Base
+import enum
+
+class ProjectStatusEnum(str, enum.Enum):
+    DRAFT = "draft"
+    PLANNING = "planning"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ARCHIVED = "archived"
+    BACKLOG = "backlog"
+
+class ProjectSourceEnum(str, enum.Enum):
+    NATIVE = "native"
+    JIRA = "jira"
+    LINEAR = "linear"
+    GITHUB = "github"
+
+class ProjectPriorityEnum(str, enum.Enum):
+    URGENT = "urgent"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    NONE = "none"
 
 class Project(Base):
     __tablename__ = "projects"
@@ -10,22 +32,52 @@ class Project(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
     project_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    status: Mapped[str] = mapped_column(String(50), default="draft")  # draft, active, completed, archived
+    status: Mapped[ProjectStatusEnum] = mapped_column(
+        SAEnum(ProjectStatusEnum, name="projectstatus", values_callable=lambda x: [e.value for e in x]), 
+        default=ProjectStatusEnum.DRAFT
+    )
+    
+    # Integration Fields
+    source: Mapped[ProjectSourceEnum] = mapped_column(
+        SAEnum(ProjectSourceEnum, name="projectsource", values_callable=lambda x: [e.value for e in x]), 
+        default=ProjectSourceEnum.NATIVE, server_default="native"
+    ) 
+    external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    external_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    integration_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # Project Charter & Content (JSON Structured)
+    purpose: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+    objectives: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    deliverables: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    scope: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    timeline: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    budget: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    stakeholders: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    team_members: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    resources: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    milestones: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    # Linear-style Metadata
+    priority: Mapped[ProjectPriorityEnum | None] = mapped_column(
+        SAEnum(ProjectPriorityEnum, name="projectpriority", values_callable=lambda x: [e.value for e in x]), 
+        nullable=True
+    )
+    start_date: Mapped[datetime | None] = mapped_column(nullable=True)
+    target_date: Mapped[datetime | None] = mapped_column(nullable=True)
+    labels: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    teams: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    lead_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Project Charter Fields
-    purpose: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    objectives: Mapped[str | None] = mapped_column(Text(), nullable=True) # SMART goals
-    scope: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    deliverables: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    timeline: Mapped[str | None] = mapped_column(Text(), nullable=True) # Narrative timeline
-    budget: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    stakeholders: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    team_members: Mapped[str | None] = mapped_column(Text(), nullable=True)
     
     # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="projects")
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id], back_populates="projects")
+    lead: Mapped["User"] = relationship("User", foreign_keys=[lead_id])
+    
     inputs: Mapped[list["ProjectInput"]] = relationship("ProjectInput", back_populates="project", cascade="all, delete-orphan")
     # intents relationship removed as part of consolidation
     scenarios: Mapped[list["Scenario"]] = relationship("Scenario", back_populates="project", cascade="all, delete-orphan")
@@ -46,8 +98,6 @@ class ProjectInput(Base):
     final_prompt: Mapped[str | None] = mapped_column(Text(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     
-    # Relationships
-    project: Mapped["Project"] = relationship("Project", back_populates="inputs")
 
 
     # Relationships
