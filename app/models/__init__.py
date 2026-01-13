@@ -9,3 +9,4 @@ from .scenario import Scenario
 from .conversation import ConversationLog
 from .version import ProjectVersion
 from .jira import JiraConnection
+from .property import Property

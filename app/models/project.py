@@ -44,31 +44,23 @@ class Project(Base):
     ) 
     external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     external_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    integration_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    
+    # Project Charter & Content - MOVED TO PROPERTIES TABLEtructured)
+    # Relationship to Properties (Polymorphic-like)
+    properties_rel: Mapped["Property"] = relationship(
+        "Property",
+        primaryjoin="and_(foreign(Property.entity_id) == Project.project_id, "
+                    "Property.entity_type == 'project')",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
 
-    # Project Charter & Content (JSON Structured)
-    purpose: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
-    objectives: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    deliverables: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    scope: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    timeline: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    budget: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    stakeholders: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    team_members: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    resources: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    milestones: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    @property
+    def properties(self) -> dict:
+        return self.properties_rel.data if self.properties_rel else {}
 
     # Linear-style Metadata
-    priority: Mapped[ProjectPriorityEnum | None] = mapped_column(
-        SAEnum(ProjectPriorityEnum, name="projectpriority", values_callable=lambda x: [e.value for e in x]), 
-        nullable=True
-    )
-    start_date: Mapped[datetime | None] = mapped_column(nullable=True)
-    target_date: Mapped[datetime | None] = mapped_column(nullable=True)
-    labels: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    teams: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-
     lead_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
