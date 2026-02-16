@@ -25,40 +25,25 @@ class ProjectPriorityEnum(str, enum.Enum):
     LOW = "low"
     NONE = "none"
 
+class ProjectHealthEnum(str, enum.Enum):
+    ON_TRACK = "on_track"
+    AT_RISK = "at_risk"
+    OFF_TRACK = "off_track"
+
 class Project(Base):
     __tablename__ = "projects"
     
     project_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
-    project_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    description: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    status: Mapped[ProjectStatusEnum] = mapped_column(
-        SAEnum(ProjectStatusEnum, name="projectstatus", values_callable=lambda x: [e.value for e in x]), 
-        default=ProjectStatusEnum.DRAFT
-    )
     
-    # Integration Fields
-    source: Mapped[ProjectSourceEnum] = mapped_column(
-        SAEnum(ProjectSourceEnum, name="projectsource", values_callable=lambda x: [e.value for e in x]), 
-        default=ProjectSourceEnum.NATIVE, server_default="native"
-    ) 
-    external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    external_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    
-    # Project Charter & Content - MOVED TO PROPERTIES TABLEtructured)
-    # Relationship to Properties (Polymorphic-like)
-    properties_rel: Mapped["Property"] = relationship(
-        "Property",
-        primaryjoin="and_(foreign(Property.entity_id) == Project.project_id, "
-                    "Property.entity_type == 'project')",
-        uselist=False,
-        cascade="all, delete-orphan",
-        lazy="selectin"
-    )
+    # Unified Properties Column (JSONB)
+    # Stores all domain fields: title, status, description, etc.
+    properties: Mapped[dict] = mapped_column(JSON, default={}, server_default='{}')
 
-    @property
-    def properties(self) -> dict:
-        return self.properties_rel.data if self.properties_rel else {}
+    # Linear-style Metadata
+    lead_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=True)
+
+
 
     # Linear-style Metadata
     lead_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=True)

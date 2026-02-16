@@ -1,8 +1,11 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any, Dict
 
-from models.project import ProjectStatusEnum, ProjectSourceEnum, ProjectPriorityEnum
+from core.property_factory import create_pydantic_model_from_schema
+
+# Auto-generate properties model from registry (Unified - includes ALL fields)
+UnifiedProjectProperties = create_pydantic_model_from_schema("project")
 
 class ProjectStats(BaseModel):
     scope: Optional[int] = None
@@ -11,59 +14,24 @@ class ProjectStats(BaseModel):
     target: Optional[str] = None
     limit: Optional[str] = None
 
-class ProjectProperties(BaseModel):
-    # Charter & Content
-    purpose: Optional[dict | list | str] = None
-    objectives: Optional[list] = None
-    deliverables: Optional[list] = None
-    scope: Optional[dict | str] = None
-    timeline: Optional[dict | str] = None
-    budget: Optional[dict | str] = None
-    stakeholders: Optional[list | str] = None
-    team_members: Optional[list | str] = None
-    resources: Optional[list] = None
-    milestones: Optional[list] = None
-    integration_metadata: Optional[dict] = None
-    
-    # Metadata
-    priority: Optional[ProjectPriorityEnum] = None
-    start_date: Optional[datetime] = None
-    target_date: Optional[datetime] = None
-    labels: Optional[list] = None
-    teams: Optional[list] = None
-    stats: Optional[ProjectStats] = None
-    
-    # UI Specific
-    type: Optional[str] = None
-    reviewer: Optional[str] = None
-
-    model_config = ConfigDict(extra='allow') # Allow future extensibility via simple dict if needed
-
 class ProjectBase(BaseModel):
-    project_title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[ProjectStatusEnum] = ProjectStatusEnum.DRAFT
-    
-    # Integration Fields
-    source: Optional[ProjectSourceEnum] = ProjectSourceEnum.NATIVE
-    external_id: Optional[str] = None
-    external_url: Optional[str] = None
-    
-    # Consolidated Properties
-    properties: Optional[ProjectProperties] = None
-    
-    lead_id: Optional[int] = None
-
-class ProjectCreate(ProjectBase):
-    user_id: int
-    project_title: str  # Making title required for creation
-
-class ProjectUpdate(ProjectBase):
+    # This is still useful for internal typing but we are decoupling API from it
     pass
 
-class ProjectResponse(ProjectBase):
+class ProjectCreate(BaseModel):
+    user_id: int
+    properties: UnifiedProjectProperties
+    lead_id: Optional[int] = None
+
+class ProjectUpdate(BaseModel):
+    properties: Optional[UnifiedProjectProperties] = None
+    lead_id: Optional[int] = None
+
+class ProjectResponse(BaseModel):
     project_id: int
     user_id: int
+    properties: UnifiedProjectProperties
+    lead_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     
