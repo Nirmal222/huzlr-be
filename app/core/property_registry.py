@@ -25,6 +25,11 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "required": True
         },
         {
+            "key": "project_budget",
+            "type": PropertyType.NUMBER,
+            "label": "Project Budget",
+        },
+        {
             "key": "description",
             "type": PropertyType.TEXT,
             "label": "Description"
