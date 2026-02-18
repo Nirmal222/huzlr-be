@@ -57,7 +57,9 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "label": "Status",
             "options": ["Draft", "Planning", "Active", "Completed", "Archived", "Backlog"],
             "default": "Draft",
-            "required": True
+            "default": "Draft",
+            "required": False,
+            "visible": True
         },
         {
             "key": "type",
@@ -122,7 +124,7 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "options": ["Open", "In Progress", "Resolved", "Closed"],
             "default": "Open",
             "required": True,
-
+            "visible": True
         },
         {
             "key": "priority",
@@ -141,3 +143,29 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
 
 def get_entity_schema(entity_type: str) -> List[Dict[str, Any]]:
     return PROPERTIES_REGISTRY.get(entity_type, [])
+
+def apply_user_preferences(schema: List[Dict[str, Any]], preferences: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Applies user preferences to the schema.
+    Overrides the 'visible' attribute if the key exists in preferences.
+    preferences structure: {"entity_type": {"property_key": {"visible": bool}}}
+    """
+    if not preferences:
+        return schema
+        
+    # Deep copy to avoid modifying the global registry in place if it's cached/reused improperly
+    # (though list comprehension creates a new list, dicts are refs)
+    import copy
+    schema_copy = copy.deepcopy(schema)
+    
+    for prop in schema_copy:
+        key = prop.get("key")
+        # Check if there is a preference for this key
+        # We assume preferences are flatten or grouped by entity. 
+        # For now let's assume preferences input to this function is ALREADY the dict for this entity.
+        if key in preferences:
+            user_pref = preferences[key]
+            if "visible" in user_pref:
+                prop["visible"] = user_pref["visible"]
+                
+    return schema_copy

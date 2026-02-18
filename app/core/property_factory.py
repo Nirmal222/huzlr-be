@@ -44,14 +44,20 @@ def create_pydantic_model_from_schema(
         if prop["key"] == "purpose":
              field_type = dict | list | str
         
+        # Handle visibility
+        visible = prop.get("visible", True)
+        field_info_kwargs = {}
+        if not visible:
+            field_info_kwargs["exclude"] = True
+
         # Handle required vs optional
         if prop.get("required", False):
             if default_value is not None:
-                fields[field_name] = (Optional[field_type], default_value)
+                fields[field_name] = (Optional[field_type], Field(default=default_value, **field_info_kwargs))
             else:
-                 fields[field_name] = (field_type, ...)
+                 fields[field_name] = (field_type, Field(..., **field_info_kwargs))
         else:
-             fields[field_name] = (Optional[field_type], default_value)
+             fields[field_name] = (Optional[field_type], Field(default=default_value, **field_info_kwargs))
 
     # Allow extra fields for flexibility
     model_config = {"extra": "allow"}
