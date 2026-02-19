@@ -32,11 +32,11 @@ def create_pydantic_model_from_schema(
         elif prop["type"] in (PropertyType.SELECT, PropertyType.STATUS, PropertyType.TEXT, PropertyType.RICH_TEXT):
              field_type = str
         elif prop["type"] == PropertyType.MULTI_SELECT:
-            field_type = List[str]
+            field_type = List[str | int]
             if default_value is None:
                 default_value = []
         elif prop["type"] == PropertyType.USER:
-            field_type = str 
+            field_type = str | int
         elif prop["type"] == PropertyType.JSON:
              field_type = Dict[str, Any] | List[Any]
         

@@ -25,66 +25,18 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "required": True
         },
         {
-            "key": "project_budget",
-            "type": PropertyType.NUMBER,
-            "label": "Project Budget",
-        },
-        {
-            "key": "description",
+            "key": "short_summary",
             "type": PropertyType.TEXT,
-            "label": "Description"
-        },
-        {
-            "key": "source",
-            "type": PropertyType.SELECT,
-            "label": "Source",
-            "options": ["native", "jira", "linear", "github"],
-            "default": "native"
-        },
-        {
-            "key": "external_id",
-            "type": PropertyType.TEXT,
-            "label": "External ID"
-        },
-        {
-            "key": "external_url",
-            "type": PropertyType.TEXT,
-            "label": "External URL"
+            "label": "Short Summary"
         },
         {
             "key": "status",
             "type": PropertyType.STATUS,
             "label": "Status",
-            "options": ["Draft", "Planning", "Active", "Completed", "Archived", "Backlog"],
-            "default": "Draft",
-            "default": "Draft",
-            "required": False,
+            "options": ["Backlog", "Planning", "In Progress", "Paused", "Done", "Canceled"],
+            "default": "Backlog",
+            "required": True,
             "visible": True
-        },
-        {
-            "key": "type",
-            "type": PropertyType.SELECT,
-            "label": "Section Type",
-            "options": ["Focus Documents", "Past Performance", "Key Personnel"],
-            "default": "Focus Documents"
-        },
-        {
-            "key": "target",
-            "type": PropertyType.NUMBER,
-            "label": "Target",
-            "default": 2000
-        },
-        {
-            "key": "limit",
-            "type": PropertyType.NUMBER,
-            "label": "Limit",
-            "default": 5000
-        },
-        {
-            "key": "reviewer",
-            "type": PropertyType.USER,
-            "label": "Reviewer",
-            "default": "Assign reviewer"
         },
         {
             "key": "priority",
@@ -93,12 +45,16 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "options": ["Urgent", "High", "Medium", "Low", "None"],
             "default": "None"
         },
-         {
-            "key": "health",
-            "type": PropertyType.SELECT,
-            "label": "Health",
-             "options": ["On Track", "At Risk", "Off Track"],
-            "default": "On Track"
+        {
+            "key": "lead",
+            "type": PropertyType.USER,
+            "label": "Lead"
+        },
+        {
+            "key": "members",
+            "type": PropertyType.MULTI_SELECT, # Should assume User Multi-Select conceptually
+            "label": "Members",
+            "default": []
         },
         {
             "key": "start_date",
@@ -111,32 +67,27 @@ PROPERTIES_REGISTRY: Dict[str, List[Dict[str, Any]]] = {
             "label": "Target Date"
         },
         {
-            "key": "purpose",
+            "key": "labels",
+            "type": PropertyType.MULTI_SELECT,
+            "label": "Labels",
+            "default": []
+        },
+        {
+            "key": "dependencies",
+            "type": PropertyType.MULTI_SELECT, # Should assume Project Multi-Select conceptually
+            "label": "Dependencies",
+            "default": []
+        },
+        {
+            "key": "description",
             "type": PropertyType.RICH_TEXT,
-            "label": "Purpose"
-        }
-    ],
-    "issue": [
-        {
-            "key": "status",
-            "type": PropertyType.STATUS,
-            "label": "Status",
-            "options": ["Open", "In Progress", "Resolved", "Closed"],
-            "default": "Open",
-            "required": True,
-            "visible": True
+            "label": "Description"
         },
         {
-            "key": "priority",
-            "type": PropertyType.SELECT,
-            "label": "Priority",
-            "options": ["Critical", "High", "Medium", "Low"],
-            "default": "Medium"
-        },
-        {
-            "key": "assignee",
-            "type": PropertyType.USER,
-            "label": "Assignee"
+            "key": "milestones",
+            "type": PropertyType.JSON,
+            "label": "Milestones",
+            "default": []
         }
     ]
 }
