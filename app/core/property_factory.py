@@ -27,8 +27,8 @@ def create_pydantic_model_from_schema(
         if prop["type"] == PropertyType.NUMBER:
             field_type = float | int
         elif prop["type"] == PropertyType.DATE:
-            from datetime import datetime
-            field_type = datetime
+            from datetime import date
+            field_type = date
         elif prop["type"] in (PropertyType.SELECT, PropertyType.STATUS, PropertyType.TEXT, PropertyType.RICH_TEXT):
              field_type = str
         elif prop["type"] == PropertyType.MULTI_SELECT:
@@ -40,10 +40,6 @@ def create_pydantic_model_from_schema(
         elif prop["type"] == PropertyType.JSON:
              field_type = Dict[str, Any] | List[Any]
         
-        # Handle Union types for flexibility (from original schema)
-        if prop["key"] == "purpose":
-             field_type = dict | list | str
-        
         # Handle visibility
         visible = prop.get("visible", True)
         field_info_kwargs = {}
@@ -53,11 +49,14 @@ def create_pydantic_model_from_schema(
         # Handle required vs optional
         if prop.get("required", False):
             if default_value is not None:
-                fields[field_name] = (Optional[field_type], Field(default=default_value, **field_info_kwargs))
+                fields[field_name] = (field_type, Field(default=default_value, **field_info_kwargs))
             else:
                  fields[field_name] = (field_type, Field(..., **field_info_kwargs))
         else:
-             fields[field_name] = (Optional[field_type], Field(default=default_value, **field_info_kwargs))
+             if default_value is not None:
+                  fields[field_name] = (field_type, Field(default=default_value, **field_info_kwargs))
+             else:
+                  fields[field_name] = (Optional[field_type], Field(default=None, **field_info_kwargs))
 
     # Allow extra fields for flexibility
     model_config = {"extra": "allow"}
