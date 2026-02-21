@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm.attributes import flag_modified
 from core.database import get_db
 from core.property_registry import get_entity_schema, apply_user_preferences
 from api.deps import get_current_user
@@ -70,7 +71,7 @@ async def update_property_preference(
             preferences={}
         )
         db.add(user_pref_record)
-        # Flush to get ID if needed, but not strictly necessary here before modifying preferences
+        await db.flush()  # Ensure the INSERT is flushed before we mutate preferences
     
     # Update the preferences dict
     # We must ensure we're working with a mutable dict or re-assigning it
@@ -82,8 +83,9 @@ async def update_property_preference(
     if "visible" in preference:
         current_prefs[prop_key]["visible"] = preference["visible"]
         
-    # Re-assign to trigger change detection
+    # Re-assign and explicitly flag as modified to force SQLAlchemy to detect the JSON change
     user_pref_record.preferences = current_prefs
+    flag_modified(user_pref_record, "preferences")
     
     await db.commit()
     await db.refresh(user_pref_record)

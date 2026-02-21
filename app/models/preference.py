@@ -8,7 +8,7 @@ class PropertyPreference(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    preferences: Mapped[dict] = mapped_column(JSON, default={})
+    preferences: Mapped[dict] = mapped_column(JSON, default=lambda: {})
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="property_preferences")

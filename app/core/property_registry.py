@@ -99,24 +99,20 @@ def apply_user_preferences(schema: List[Dict[str, Any]], preferences: Dict[str, 
     """
     Applies user preferences to the schema.
     Overrides the 'visible' attribute if the key exists in preferences.
-    preferences structure: {"entity_type": {"property_key": {"visible": bool}}}
+    preferences structure: {"property_key": {"visible": bool}}
+    Always returns a deep copy to avoid mutating the global registry.
     """
-    if not preferences:
-        return schema
-        
-    # Deep copy to avoid modifying the global registry in place if it's cached/reused improperly
-    # (though list comprehension creates a new list, dicts are refs)
     import copy
     schema_copy = copy.deepcopy(schema)
-    
+
+    if not preferences:
+        return schema_copy
+
     for prop in schema_copy:
         key = prop.get("key")
-        # Check if there is a preference for this key
-        # We assume preferences are flatten or grouped by entity. 
-        # For now let's assume preferences input to this function is ALREADY the dict for this entity.
         if key in preferences:
             user_pref = preferences[key]
             if "visible" in user_pref:
                 prop["visible"] = user_pref["visible"]
-                
+
     return schema_copy
