@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import flag_modified
+from models.property import Property
 from core.database import get_db
 from models.project import Project
 from models.project import Project
@@ -19,6 +22,7 @@ async def list_projects(
 ):
     result = await db.execute(
         select(Project)
+        .options(selectinload(Project._property_record))
         .where(Project.user_id == current_user.id)
         .offset(skip)
         .limit(limit)
@@ -40,10 +44,17 @@ async def create_project(
     # Ensure properties is a dict for JSONB
     if 'properties' in project_data and hasattr(project_data['properties'], 'model_dump'):
          project_data['properties'] = project_data['properties'].model_dump()
+         
+    properties_data = project_data.pop('properties', {})
     
     db_project = Project(**project_data)
             
     db.add(db_project)
+    await db.flush()
+    
+    prop_record = Property(entity_type="project", entity_id=db_project.project_id, data=properties_data)
+    db_project._property_record = prop_record
+    
     await db.commit()
     await db.refresh(db_project)
     return db_project
@@ -54,7 +65,11 @@ async def get_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(select(Project).where(Project.project_id == project_id))
+    result = await db.execute(
+        select(Project)
+        .options(selectinload(Project._property_record))
+        .where(Project.project_id == project_id)
+    )
     project = result.scalars().first()
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -72,7 +87,11 @@ async def update_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(select(Project).where(Project.project_id == project_id))
+    result = await db.execute(
+        select(Project)
+        .options(selectinload(Project._property_record))
+        .where(Project.project_id == project_id)
+    )
     db_project = result.scalars().first()
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -92,8 +111,16 @@ async def update_project(
             new_props = new_props.model_dump(exclude_unset=True)
             
         existing_props.update(new_props)
-        # Reassign to trigger update
-        db_project.properties = existing_props
+        
+        if db_project._property_record:
+            db_project._property_record.data = existing_props
+            flag_modified(db_project._property_record, "data")
+        else:
+            db_project._property_record = Property(
+                entity_type="project", 
+                entity_id=db_project.project_id, 
+                data=existing_props
+            )
         
         # Remove properties from update_data to avoid double assignment if we iterate
         del update_data['properties']
@@ -112,7 +139,11 @@ async def delete_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(select(Project).where(Project.project_id == project_id))
+    result = await db.execute(
+        select(Project)
+        .options(selectinload(Project._property_record))
+        .where(Project.project_id == project_id)
+    )
     project = result.scalars().first()
     
     if project is None:
@@ -134,6 +165,7 @@ async def batch_delete_projects(
     # Fetch all projects to be deleted to ensure ownership and existence
     result = await db.execute(
         select(Project)
+        .options(selectinload(Project._property_record))
         .where(Project.project_id.in_(project_ids))
         .where(Project.user_id == current_user.id)
     )

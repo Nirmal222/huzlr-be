@@ -1,5 +1,5 @@
 from sqlalchemy import String, Integer, BigInteger, Text, Float, ForeignKey, JSON, Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, foreign
 from datetime import datetime
 from models.base import Base
 import enum
@@ -36,10 +36,6 @@ class Project(Base):
     project_id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=False)
     
-    # Unified Properties Column (JSONB)
-    # Stores all domain fields: title, status, description, etc.
-    properties: Mapped[dict] = mapped_column(JSON, default={}, server_default='{}')
-
     # Linear-style Metadata
     lead_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.id"), nullable=True)
 
@@ -62,6 +58,26 @@ class Project(Base):
     assumptions: Mapped[list["Assumption"]] = relationship("Assumption", back_populates="project", cascade="all, delete-orphan")
     conversation_logs: Mapped[list["ConversationLog"]] = relationship("ConversationLog", back_populates="project", cascade="all, delete-orphan")
     versions: Mapped[list["ProjectVersion"]] = relationship("ProjectVersion", back_populates="project", cascade="all, delete-orphan")
+    
+    _property_record: Mapped["Property"] = relationship(
+        "Property",
+        primaryjoin="and_(foreign(Property.entity_id) == Project.project_id, Property.entity_type == 'project')",
+        viewonly=False,
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    @property
+    def properties(self) -> dict:
+        return self._property_record.data if self._property_record else {}
+
+    @properties.setter
+    def properties(self, value: dict):
+        from models.property import Property
+        if self._property_record:
+            self._property_record.data = value
+        else:
+            self._property_record = Property(entity_type="project", data=value)
     
 
 class ProjectInput(Base):
