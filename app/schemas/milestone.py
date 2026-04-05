@@ -2,26 +2,21 @@ from pydantic import BaseModel, ConfigDict
 from datetime import date
 from typing import Optional
 
-class TaskBase(BaseModel):
+class MilestoneBase(BaseModel):
     title: str
     description: Optional[str] = None
-    status: Optional[str] = "pending"
-    milestone_id: Optional[int] = None
-    duration_days: Optional[int] = None
+    order_index: Optional[int] = None
     estimated_start_date: Optional[date] = None
     estimated_end_date: Optional[date] = None
-    critical_path_flag: bool = False
-    order_index: Optional[int] = None
 
-class TaskCreate(TaskBase):
+class MilestoneCreate(MilestoneBase):
     project_id: int
 
-class TaskUpdate(TaskBase):
+class MilestoneUpdate(MilestoneBase):
     title: Optional[str] = None
-    status: Optional[str] = None
 
-class TaskResponse(TaskBase):
-    id: int
+class MilestoneResponse(MilestoneBase):
+    milestone_id: int
     project_id: int
     
     model_config = ConfigDict(from_attributes=True)

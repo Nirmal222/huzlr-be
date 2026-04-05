@@ -5,7 +5,7 @@ from .project import Project
 from .task import Task
 from .task_dependency import TaskDependency
 from .risk import Risk
-from .scenario import Scenario
+from .milestone import Milestone
 from .conversation import ConversationLog
 from .version import ProjectVersion
 from .jira import JiraConnection

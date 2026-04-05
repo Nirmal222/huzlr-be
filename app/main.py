@@ -23,7 +23,7 @@ from models.user import User
 # Unless specific circular dependency issues arise.
 # Let's import everything.
 from models.risk import Risk, Assumption
-from models.scenario import Scenario, Milestone
+from models.milestone import Milestone
 from models.task_dependency import TaskDependency
 from models.conversation import ConversationLog
 from models.version import ProjectVersion

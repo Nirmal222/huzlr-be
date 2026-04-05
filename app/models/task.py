@@ -12,8 +12,8 @@ class Task(Base):
     description: Mapped[str | None] = mapped_column(Text(), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="pending")
     # NEW: Fields for project management
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.project_id"), nullable=False)
     milestone_id: Mapped[int | None] = mapped_column(ForeignKey("milestones.milestone_id"), nullable=True)
-    scenario_id: Mapped[int | None] = mapped_column(ForeignKey("scenarios.scenario_id"), nullable=True)
     duration_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
     estimated_start_date: Mapped[Date | None] = mapped_column(Date, nullable=True)
     estimated_end_date: Mapped[Date | None] = mapped_column(Date, nullable=True)
@@ -21,8 +21,8 @@ class Task(Base):
     order_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Add these relationships
+    project: Mapped["Project"] = relationship("Project", back_populates="tasks")
     milestone: Mapped["Milestone"] = relationship("Milestone", back_populates="tasks")
-    scenario: Mapped["Scenario"] = relationship("Scenario", back_populates="tasks")
     dependencies: Mapped[list["TaskDependency"]] = relationship(
         "TaskDependency",
         foreign_keys="TaskDependency.task_id",
